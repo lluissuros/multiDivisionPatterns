@@ -130,42 +130,73 @@ f.patternMerger = {
 
 
 f.makePbindFromPatternObj = {
-	arg patternObj, tempo = TempoClock.default.tempo;
+	arg patternObj, pan = 0, tempo = TempoClock.default.tempo;
 	var beatNum = patternObj.amps.size / patternObj.beatDiv;
 	var dur = beatNum / (patternObj.amps.size * tempo);
+	var types = patternObj.amps.collect({ |amp|
+		if( amp > 0 ){\note}{\rest}
+	});
 
 	Pbind(
-		\instrument, "moto-rev",
+		\instrument, \klankHit,
 		\dur, dur,
-		\amp, Pseq( patternObj.amps, inf));
+		\pan, pan,
+		\amp, Pseq( patternObj.amps, inf),
+	    \type, Pseq( types, inf));
 };
 )
 
 
 
-
-
-//test
+//proto play
 (
-var patObj1 = f[\patternRandGenerator].(
+var patObj1R = f[\patternRandGenerator].(
 	{5.rand.max(1)}.(),
-	{6.rand.max(2)}.()).postln;
+	{11.rand.max(2)}.()).postln;
 
-var patObj2 = f[\patternRandGenerator].(
+var patObj2R = f[\patternRandGenerator].(
 	{5.rand.max(1)}.(),
-	{6.rand.max(2)}.()).postln;
+	{11.rand.max(2)}.()).postln;
 
-var patObj3 = f[\patternRandGenerator].(
+var patObj3R = f[\patternRandGenerator].(
 	{5.rand.max(1)}.(),
-	{8.rand.max(2)}.()).postln;
+	{11.rand.max(2)}.()).postln;
 
-var merged = f[\patternMerger].(patObj1, patObj2).postln;
-merged = f[\patternMerger].(patObj2, patObj3).postln;
+var patObj1L = f[\patternRandGenerator].(
+	{5.rand.max(1)}.(),
+	{11.rand.max(2)}.()).postln;
 
-//var patt = (amps: [ 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0 ] , beatDiv: 6);
-e = f[\makePbindFromPatternObj].(merged, 1).play;
-)
+var patObj2L = f[\patternRandGenerator].(
+	{5.rand.max(1)}.(),
+	{11.rand.max(2)}.()).postln;
+
+var patObj3L = f[\patternRandGenerator].(
+	{5.rand.max(1)}.(),
+	{11.rand.max(2)}.()).postln;
+
+var mergedR = f[\patternMerger].(
+	f[\patternMerger].(patObj1R, patObj2R),
+	patObj3R);
+
+var mergedL = f[\patternMerger].(
+	f[\patternMerger].(patObj1L, patObj2L),
+	patObj3R);
+
 e.stop;
+g.stop;
+
+
+e = f[\makePbindFromPatternObj].(mergedR, 1).play;
+g = f[\makePbindFromPatternObj].(mergedL, -1).play;
+)
+
+
+
+e.stop;
+e.play;
+
+g.stop;
+g.play;
 
 
 
