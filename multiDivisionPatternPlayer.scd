@@ -12,12 +12,38 @@ Make the pattern creator handle also 5s, 7s, and so on
 SynthDef("moto-rev", { arg out=0, amp = 1;
     var x = RLPF.ar(LFPulse.ar(SinOsc.kr(0.2, 0, 10, 21), [0,0.1], 0.1),
         100, 0.1).clip2(0.4);
-	var env = EnvGen.kr(Env.perc(0.001, 0.1), doneAction: 2);
+	var env = EnvGen.kr(Env.perc(0.001, 2), doneAction: 2);
     Out.ar(out, x * amp * env);
+}).add;
+
+SynthDef(\klankHit,{
+	|out = 0,
+	freq = 65,
+	maxffreq = 6000.0,
+	ringLength = 3,
+	atk = 0.1,
+	sus = 0,
+	rel = 1,
+	pan = 0,
+	amp = 0.5|
+
+	var freqs =  ({LinRand(0, maxffreq).round(freq) + freq}).dup(12);
+	var rings =  {Rand(0.1, ringLength)}.dup(12);
+
+	var env = EnvGen.kr(Env.linen(atk, sus, rel, 1, \welch), doneAction:2);
+	var hit = BrownNoise.ar(0.0025) * env * amp;
+
+	var klank = Klank.ar(
+        `[freqs, nil, rings],
+        hit
+    );
+
+    Out.ar(out, Pan2.ar(klank , pan));
 }).add;
 )
 
 Synth("moto-rev");
+Synth(\klankHit);
 
 
 /*
