@@ -172,57 +172,45 @@ f.makePbindFromPatternObj = {
 )
 
 
-
 //proto play
 (
-var patObj1R = f[\patternRandGenerator].(
-	{5.rand.max(1)}.(),
-	{11.rand.max(2)}.()).postln;
+var pans = [-1, 1];
+var freqs = [[2000,1000,500], [4000,2000,1000]];
+var multiDivPbinds = Array.newClear(2).collect({
+	|el, index|
+	var patObj1 = f[\patternRandGenerator].(
+		{5.rand.max(1)}.(),
+		{7.rand.max(2)}.()).postln;
 
-var patObj2R = f[\patternRandGenerator].(
-	{5.rand.max(1)}.(),
-	{11.rand.max(2)}.()).postln;
+	var patObj2 = f[\patternRandGenerator].(
+		{5.rand.max(1)}.(),
+		{7.rand.max(2)}.()).postln;
 
-var patObj3R = f[\patternRandGenerator].(
-	{5.rand.max(1)}.(),
-	{11.rand.max(2)}.()).postln;
+	var patObj3 = f[\patternRandGenerator].(
+		{5.rand.max(1)}.(),
+		{7.rand.max(2)}.()).postln;
 
-var patObj1L = f[\patternRandGenerator].(
-	{5.rand.max(1)}.(),
-	{11.rand.max(2)}.()).postln;
+	var merged = f[\patternMerger].(
+		f[\patternMerger].(patObj1, patObj2),
+		patObj3);
 
-var patObj2L = f[\patternRandGenerator].(
-	{5.rand.max(1)}.(),
-	{11.rand.max(2)}.()).postln;
+	f[\makePbindFromPatternObj].(merged, pans.[index], freqs[index]);
+});
 
-var patObj3L = f[\patternRandGenerator].(
-	{5.rand.max(1)}.(),
-	{11.rand.max(2)}.()).postln;
+~multiDivPlayers.do({ |stream|
+	stream.stop;
+});
 
-var mergedR = f[\patternMerger].(
-	f[\patternMerger].(patObj1R, patObj2R),
-	patObj3R);
+~multiDivPlayers = multiDivPbinds.collect({ |pbind|
+	pbind.play;
+});
 
-var mergedL = f[\patternMerger].(
-	f[\patternMerger].(patObj1L, patObj2L),
-	patObj3R);
-
-e.stop;
-g.stop;
-
-
-e = f[\makePbindFromPatternObj].(mergedR, 1).play;
-g = f[\makePbindFromPatternObj].(mergedL, -1).play;
+"NEW RYTHM". postln;
 )
 
 
-
-e.stop;
-e.play;
-
-g.stop;
-g.play;
-
+~multiDivPlayers.do({ |strm| strm.stop });
+~multiDivPlayers.do({ |strm| strm.play });
 
 
 TempoClock.default.tempo = 1;
@@ -237,4 +225,11 @@ d.add(\monkey -> 2).postln;    // Replaces the value for the key monkey with 2
 )
 
 
+// I LIKE THOSE
+( 'amps': [ 0, 0, 0, 1, 0, 1, 1, 0, 0 ], 'beatDiv': 3 )
+( 'amps': [ 0, 1 ], 'beatDiv': 2 )
+( 'amps': [ 1, 0.5, 0, 0, 1, 0 ], 'beatDiv': 2 )
+( 'amps': [ 0.5, 0, 0, 0.5, 1, 0, 1, 1, 0.5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.8, 0, 0.5, 0, 1 ], 'beatDiv': 6 )
+( 'amps': [ 0.5, 0, 1, 0, 0, 0.5 ], 'beatDiv': 2 )
+( 'amps': [ 0, 1, 0, 0.8, 0, 1, 0, 0, 0.5 ], 'beatDiv': 3 )
 
