@@ -153,7 +153,7 @@ f.makePbindFromPatternObj = {
 	arg
 	  patternObj,
 	  pan = 0,
-	  freq=400,
+	  freqs =400,
 	  tempo = TempoClock.default.tempo;
 	var beatNum = patternObj.amps.size / patternObj.beatDiv;
 	var dur = beatNum / (patternObj.amps.size * tempo);
@@ -161,10 +161,20 @@ f.makePbindFromPatternObj = {
 		if( amp > 0 ){\note}{\rest}
 	});
 
+	var counterFreq = 0;
+	var freqsToPlay = patternObj.amps.collect({ |amp|
+		var freq;
+		if( amp > 0 ){
+			freq = freqs.asArray.wrapAt(counterFreq);
+			counterFreq = counterFreq + 1;
+		}{ freq = \rest; };
+		freq;
+	});
+
 	Pbind(
-		\instrument, \sinHit,
+		\instrument, \klankHit,
 		\dur, dur,
-		\freq, Pseq( freq.asArray, inf),
+		\freq, Pseq( freqsToPlay, inf),
 		\pan, pan,
 		\amp, Pseq( patternObj.amps, inf),
 	    \type, Pseq( types, inf));
@@ -175,7 +185,10 @@ f.makePbindFromPatternObj = {
 //proto play
 (
 var pans = [-1, 1];
-var freqs = [[2000,1000,500], [4000,2000,1000]];
+var degrees = Scale.kumoi.degrees;
+var freqs = [
+	(60 + {degrees.choose}.dup( 7.rand.max(1) )).midicps,
+	(60 + {degrees.choose}.dup( 7.rand.max(1) )).midicps];
 var multiDivPbinds = Array.newClear(2).collect({
 	|el, index|
 	var patObj1 = f[\patternRandGenerator].(
@@ -212,18 +225,12 @@ var multiDivPbinds = Array.newClear(2).collect({
 ~multiDivPlayers.do({ |strm| strm.stop });
 ~multiDivPlayers.do({ |strm| strm.play });
 
+Scale.partch_o1.degrees
 
 TempoClock.default.tempo = 1;
 
-
-
-(
-d = Dictionary.new;
-d.add(\monkey -> 0).postln;
-d.add(\robot -> 1).postln;    // Add robot as a key with a value of 1
-d.add(\monkey -> 2).postln;    // Replaces the value for the key monkey with 2
-)
-
+Scale.major.degrees
+{Scale.kumoi.degrees.choose}!3
 
 // I LIKE THOSE
 ( 'amps': [ 0, 0, 0, 1, 0, 1, 1, 0, 0 ], 'beatDiv': 3 )
