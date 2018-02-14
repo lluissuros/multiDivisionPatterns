@@ -31,19 +31,38 @@ SynthDef(\klankHit,{
 	var rings =  {Rand(0.1, ringLength)}.dup(12);
 
 	var env = EnvGen.kr(Env.linen(atk, sus, rel, 1, \welch), doneAction:2);
-	var hit = BrownNoise.ar(0.0025) * env * amp;
+	var hit = BrownNoise.ar(0.0025) * amp;
 
 	var klank = Klank.ar(
         `[freqs, nil, rings],
         hit
     );
 
-    Out.ar(out, Pan2.ar(klank , pan));
+    Out.ar(out, Pan2.ar(klank * env , pan));
+}).add;
+
+
+SynthDef(\sinHit,{
+	|out = 0,
+	freq = 400,
+	atk = 0.01,
+	sus = 0,
+	rel = 0.1,
+	pan = 0,
+	amp = 1|
+
+	var env = EnvGen.kr(Env.perc(atk, rel), doneAction:2);
+	var sin = SinOsc.ar(freq);
+
+    Out.ar(out, Pan2.ar(sin * env  * amp , pan));
 }).add;
 )
 
+
+
 Synth("moto-rev");
 Synth(\klankHit);
+Synth(\sinHit);
 
 
 /*
@@ -68,7 +87,6 @@ patternObject = (
 )
 
 */
-
 
 
 
@@ -103,6 +121,8 @@ f.patternRandGenerator = {
 	patternObj;
 };
 
+
+// TODO: should ta dke as much patterns as we want
 f.patternMerger = {
 	arg
 	  patternObj1, // = (amps: Array, beatDiv: Int)
@@ -130,7 +150,11 @@ f.patternMerger = {
 
 
 f.makePbindFromPatternObj = {
-	arg patternObj, pan = 0, tempo = TempoClock.default.tempo;
+	arg
+	  patternObj,
+	  pan = 0,
+	  freq=400,
+	  tempo = TempoClock.default.tempo;
 	var beatNum = patternObj.amps.size / patternObj.beatDiv;
 	var dur = beatNum / (patternObj.amps.size * tempo);
 	var types = patternObj.amps.collect({ |amp|
@@ -138,8 +162,9 @@ f.makePbindFromPatternObj = {
 	});
 
 	Pbind(
-		\instrument, \klankHit,
+		\instrument, \sinHit,
 		\dur, dur,
+		\freq, Pseq( freq.asArray, inf),
 		\pan, pan,
 		\amp, Pseq( patternObj.amps, inf),
 	    \type, Pseq( types, inf));
