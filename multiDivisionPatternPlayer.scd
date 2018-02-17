@@ -134,7 +134,9 @@ f.patternMerger = {
 
 	var amps = emptyAmps.collect({
 		|i, index|
-		if(index % patternObj2.beatDiv == 0) {
+		if(index % patternObj2.beatDiv == 0
+			&& (patternObj1.amps.wrapAt(index/patternObj2.beatDiv) > 0))
+		{
 			patternObj1.amps.wrapAt(index/patternObj2.beatDiv);
 		}{
 			if(index % patternObj1.beatDiv == 0) {
