@@ -38,7 +38,7 @@ SynthDef(\klankHit,{
         hit
     );
 
-    Out.ar(out, Pan2.ar(klank * env , pan));
+    Out.ar(out, Pan2.ar(klank * env * 0.1 , pan));
 }).add;
 
 
@@ -54,7 +54,7 @@ SynthDef(\sinHit,{
 	var env = EnvGen.kr(Env.perc(atk, rel), doneAction:2);
 	var sin = SinOsc.ar(freq);
 
-    Out.ar(out, Pan2.ar(sin * env  * amp , pan));
+    Out.ar(out, Pan2.ar(sin * env  * amp * 0.3 , pan));
 }).add;
 )
 
@@ -191,6 +191,7 @@ var degrees = Scale.kumoi.degrees;
 var freqs = [
 	(60 + {degrees.choose}.dup( 7.rand.max(1) )).midicps,
 	(60 + {degrees.choose}.dup( 7.rand.max(1) )).midicps];
+
 var multiDivPbinds = Array.newClear(2).collect({
 	|el, index|
 	var patObj1 = f[\patternRandGenerator].(
@@ -208,7 +209,6 @@ var multiDivPbinds = Array.newClear(2).collect({
 	var merged = f[\patternMerger].(
 		f[\patternMerger].(patObj1, patObj2),
 		patObj3);
-
 	f[\makePbindFromPatternObj].(merged, pans.[index], freqs[index]);
 });
 
@@ -224,15 +224,120 @@ var multiDivPbinds = Array.newClear(2).collect({
 )
 
 
+Scale.directory
+
+//automatic pattern changer
+(
+Tdef(\patternCreator, {
+	inf.do{
+		var pans = [-1, 1];
+		var degrees = Scale.kumoi.degrees; //chinese, nairuz, gong
+		var freqs = [
+			(60 + {degrees.choose}.dup( 7.rand.max(1) )).midicps,
+			(60 + {degrees.choose}.dup( 7.rand.max(1) )).midicps];
+
+		var multiDivPbinds = Array.newClear(2).collect({
+			|el, index|
+
+			var patObj1 = f[\patternRandGenerator].(
+				[2].choose,
+				2);
+
+			var patObj2 = f[\patternRandGenerator].(
+				[2].choose,
+				3);
+
+			var patObj3 = f[\patternRandGenerator].(
+				[2].choose,
+				[5].choose);
+
+			var merged = f[\patternMerger].(
+				f[\patternMerger].(patObj1, patObj2),
+				patObj3);
+
+			merged.postln;
+			merged.amps.size.postln;
+
+			f[\makePbindFromPatternObj].(merged, pans.[index], freqs[index]);
+		});
+
+		~multiDivPlayers.do({ |stream|
+			stream.stop;
+		});
+
+		~multiDivPlayers = multiDivPbinds.collect({ |pbind|
+			pbind.play;
+		});
+
+		//TODO: maybe 'remember' the past ~multiDiv in an Array, and interpolate them, not always playing a new one.
+
+		"NEW RYTHM". postln;
+		[4].choose.wait;
+	}
+});
+)
+
+Scale.directory
+
+//version 2
+(
+Tdef(\patternCreator, {
+	var degrees = Scale.chinese.degrees; //chinese, nairuz, gong
+	var baseFreqs = 60 + [
+		degrees[0],
+		degrees.wrapAt(2),
+		degrees[0],
+		degrees.wrapAt(5)];
+	var pans = [-1, 1];
+	var counterFreq = 0;
+
+	inf.do{
+		var baseFreq = baseFreqs.wrapAt(counterFreq).postln;
+		var makeArp = { ({degrees.choose}.dup( 7.rand.max(2))).mirror1 };
+		var freqs = [
+			(baseFreq + makeArp.().postln ).midicps,
+			(baseFreq + makeArp.().postln ).midicps];
+
+		var multiDivPbinds = Array.newClear(2).collect({
+			|el, index|
+
+			var patObj1 = f[\patternRandGenerator].(
+				[2].choose,
+				5);
+
+			var patObj2 = f[\patternRandGenerator].(
+				[2].choose,
+				3);
+
+			var merged = f[\patternMerger].(patObj1, patObj2);
+
+
+			f[\makePbindFromPatternObj].(merged, pans.[index], freqs[index]);
+		});
+
+		~multiDivPlayers.do({ |stream|
+			stream.stop;
+		});
+
+		~multiDivPlayers = multiDivPbinds.collect({ |pbind|
+			pbind.play;
+		});
+
+		//TODO: maybe 'remember' the past ~multiDiv in an Array, and interpolate them, not always playing a new one.
+
+		"NEW RYTHM". postln;
+		counterFreq = counterFreq + 1;
+		[4].choose.wait;
+	}
+});
+)
+Tdef(\patternCreator).play;
+Tdef(\patternCreator).stop;
+
+
 ~multiDivPlayers.do({ |strm| strm.stop });
 ~multiDivPlayers.do({ |strm| strm.play });
 
-Scale.partch_o1.degrees
-
-TempoClock.default.tempo = 1;
-
-Scale.major.degrees
-{Scale.kumoi.degrees.choose}!3
 
 // I LIKE THOSE
 ( 'amps': [ 0, 0, 0, 1, 0, 1, 1, 0, 0 ], 'beatDiv': 3 )
