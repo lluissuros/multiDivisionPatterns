@@ -1,4 +1,4 @@
-//some unit tests.
+`//some unit tests.
 
 (
 var testObj1 = (amps: [1,1], beatDiv: 2);
@@ -57,6 +57,13 @@ testObj2 = (amps: [0,1], beatDiv: 2);
 f[\assertTrue].(
 	f[\patternMerger].(testObj1, testObj2),
 	(amps: [0,0,1,0], beatDiv:4)
+);
+
+testObj1 = (amps: [0,0,0], beatDiv: 3);
+testObj2 = (amps: [0,1,0], beatDiv: 3);
+f[\assertTrue].(
+	f[\patternMerger].(testObj1, testObj2),
+	(amps: [0,0,0,1,0,0,0,0,0], beatDiv:9)
 );
 
 )
